@@ -1,0 +1,11 @@
+.pixel {
+  width: 48px;
+  height: 48px;
+  border: 1px solid white; /* Border around cells */
+  transition: all 200ms linear;
+
+  &:hover {
+    cursor: pointer;
+    transform: scale(1.1);
+ }
+}

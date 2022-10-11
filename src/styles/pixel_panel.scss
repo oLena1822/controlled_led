@@ -1,0 +1,11 @@
+#pixel_panel {
+  display: grid;
+  width: 100%;
+  gap: 2;
+  grid-template-columns: repeat(8, 1fr);
+  margin-bottom: 20px;
+}
+
+#pixel {
+  border: 1px solid white; /* Border around cells */
+}
