@@ -18,12 +18,10 @@ export default function Pixel({field, index, selectedColor, setField}) {
     }
 
     function SendColor(){
-        let row = Math.floor(index / 8);
-        let column = index % 8;
-        row += 1
-        column += 1
+        let row = Math.floor(index/8);
+        let column = index%8;
 
-        fetch(`http://192.168.1.157:80/control`, {
+        fetch(`http://192.168.4.1/control`, {
             mode: 'no-cors',
             method: "POST",
             headers: {
@@ -36,21 +34,21 @@ export default function Pixel({field, index, selectedColor, setField}) {
                     {
                         "row": row,
                         "col": column,
-                        "colour": HexToRgb()
-                    }
-                ]
-
+                        "colour": HexToRgb(),
+                    },
+                ],
             }),
-        }).then(()=>{});
+        }).then(()=>{
+            setField(p => {
+                const copy = [...p];
+                copy[index] = selectedColor;
+                return copy;
+            });
+        });
     }
 
 
     function applyColor() {
-        setField(p => {
-            const copy = [...p];
-            copy[index] = selectedColor;
-            return copy;
-        });
         SendColor();
         setCanChangeColor(false);
     }
@@ -75,33 +73,6 @@ export default function Pixel({field, index, selectedColor, setField}) {
         }
         setCanChangeColor(true)
     }
-
-
-
-
-    // const GetColors = async () => {
-    //     try {
-    //         let url = (`http://192.168.1.157:80/state`);
-    //         const response = await fetch(url)
-    //         const json = await response.json();
-    //         let newJson = json.pixels.map(({ col, row, colour }) => {
-    //             const index = row * 8 + col;
-    //             const color = `#${"0".concat(colour[0].toString(16)).slice(-2)}${colour[0].toString(16)}${colour[0].toString(16)}`
-    //             return color;
-    //         });
-    //         setField(newJson)
-    //     }
-    //
-    //     catch (e) {
-    //         await Swal.fire({
-    //             title: "Error!",
-    //             text: "Sorry there was an error loading this data",
-    //             icon: "error",
-    //             confirmButtonText: "Ok",
-    //         });
-    //         return [];
-    //     }
-    // };
 
 
     return (

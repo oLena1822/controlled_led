@@ -5,27 +5,41 @@ import PixelPanel from "./PixelPanel";
 import Swal from "sweetalert2";
 
 export default function Editor() {
-    const [field, setField] = useState(() => Array(64).fill('#000'));
+    const [field, setField] = useState(() => Array(64).fill('#000000'));
     const [selectedColor, setColor] = useState("#f44336"); //Changing color palettes
+
+    const rgbToHex = (r,g,b) => {
+        return "#" + ( 1<<24 | r<<16 | g<<8 | b ).toString(16).slice(1);
+
+    }
 
     const GetColors = async () => {
         try {
-            const response = await fetch(`http://192.168.1.157:80/state`);
+            const response = await fetch(`http://192.168.4.1/state`);
             const json = await response.json();
-            return json.pixels.reduce((acc, { col, row, colour }) => {
-                return (acc[row * 8 + col] = `#${"0".concat(colour[0].toString(16)).slice(-2)}${colour[0].toString(16)}${colour[0].toString(16)}`, acc);
-            }, []);
+            const t = json.pixels.map((obj) => {
+                return rgbToHex(obj.colour[0], obj.colour[1], obj.colour[2]);
+            });
+            return t;
         }
         catch(e) {
+            await Swal.fire({
+                title: "Error!",
+                text: "Sorry there was an error loading this data",
+                icon: "error",
+                confirmButtonText: "Ok",
+            });
             return [];
         }
     }
 
-
-    useEffect(() => {
-        GetColors()
-            .then((value)=>{setField([...value])})
-            .catch(() =>{})
+    useEffect( () => {
+        const getData = async () => {
+            const colors = await GetColors();
+            console.log(colors)
+            setField(colors);
+        };
+        getData().then(()=>{});
     }, [])
 
     function changeColor(color) {
@@ -43,25 +57,35 @@ export default function Editor() {
             confirmButtonText: "Yes, clear it!",
         }).then((result) => {
             if (result.isConfirmed) {
-                fetch('http://192.168.1.157/control', {
+                fetch('http://192.168.4.1/control', {
                     mode: 'no-cors',
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",
-                        'Authorization': `Bearer `
+                        "Content-Type": "application/json"
                     },
                     redirect: "follow",
                     body: JSON.stringify({
                         "cmd": "CLEAR_ALL"
                     }),
-                });
+                })
+                    .then(() => {
+                        setField(Array(64).fill('#000000'))
+                        Swal.fire(
+                            "Clear!",
+                            "Pixel panel cleared",
+                            "success"
+                        );
+                    })
+                    .catch(() =>{
+                        Swal.fire({
+                            title: "Error!",
+                            text: "Unable to clear",
+                            icon: "error",
+                            confirmButtonText: "Ok",
+                        });
+                        return [];
+                    })
 
-                setField((p) => p.fill('#000'));
-                Swal.fire(
-                    "Clear!",
-                    "Pixel panel cleared",
-                    "success"
-                );
             }
         });
 
